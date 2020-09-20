@@ -3,6 +3,7 @@
  const authMiddleWare = require('../middlewares/auth');
  const multer = require('multer');
  const router = express.Router();
+ const {ImageUniqueName} = require('../utils/uniqueIds/imageUniqueName');
 
  router.post('/newOrder',[authMiddleWare],(req,res)=>{
      const data = req.body;
@@ -24,8 +25,7 @@
                  conn.query('INSERT INTO orders SET ?',[body],(err,orderCreated)=>{
                      if(err){return res.send({success:false,status: 400, message: err}).status(400)}
                      else{
-                        //  console.log(orderCreated.insertId);
-                         return res.send({success: true, message: "Order created",order: orderCreated,status: 201})
+                       return res.send({success: true, message: "Order created",order: orderCreated,status: 201})
                          .status(201)
                      }
                  })
@@ -44,7 +44,7 @@ const storage = multer.diskStorage({
         callBack(null, 'utils/uploads/orderImages')
     },
     filename: (req, file, callBack) => {
-        callBack(null, `${ImageUniqueName()}-${file.originalname.toLowerCase()}`)
+        callBack(null, `${ImageUniqueName()}`)
     }
 })
 const upload = multer({
@@ -53,13 +53,15 @@ const upload = multer({
 //----------------------------END OF DECLAIRING THE IMAGE STORAGE------------------------
 
 //----------------------------PROCESSING THE REQUEST-------------------------------------
+
 router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
-    console.log("HELLO**********");
-    alert("what");
     const file = req.file;
     const orderId = req.header('order-id')
-     if (!file) {
+    if (!file) {
         const error = new Error('No File')
+        res.send({
+            success: false,status: 400, error
+        }).status(400)
         error.httpStatusCode = 400
         return next(error)
     }
@@ -83,6 +85,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
         })
     })
 })
+
  router.get('/allOrder',(req,res)=>{
      req.getConnection((err,conn)=>{
          if(err) return res.send({success: false,status: 500, message: err}).status(500)
