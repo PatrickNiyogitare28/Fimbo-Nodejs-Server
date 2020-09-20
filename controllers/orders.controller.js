@@ -107,10 +107,10 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
                 return res.send({success: false, status: 404, message: "User not found"}).status(404)
             }
             else if(isUser.length == 1){
-                conn.query('SELECT * FROM orders WHERE user ',[req.paramsuserId],(err,orderCreated)=>{
+                conn.query('SELECT * FROM orders WHERE user = ?',[req.params.userId],(err,orderCreated)=>{
                     if(err){return res.send({success:false,status: 400, message: err}).status(400)}
                     else{
-                        return res.send({success: true, message: "Order created",order: orderCreated,status: 200})
+                        return res.send({success: true, message: "Order created",orders: orderCreated,status: 200})
                         .status(200)
                     }
                 })
