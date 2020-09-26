@@ -99,7 +99,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
  })
 
  router.get('/userOrders/:userId',[authMiddleWare],(req,res)=>{
-    req.getConnection((err,conn)=>{
+   req.getConnection((err,conn)=>{
         if(err) return res.send({success:false,status: 500,message: err}).status(500)
         conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],(err,isUser)=>{
             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -107,7 +107,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
                 return res.send({success: false, status: 404, message: "User not found"}).status(404)
             }
             else if(isUser.length == 1){
-                conn.query('SELECT * FROM orders WHERE user = ?',[req.params.userId],(err,orderCreated)=>{
+                conn.query('SELECT * FROM orders WHERE user = ?  ORDER BY `order_id` DESC',[req.params.userId],(err,orderCreated)=>{
                     if(err){return res.send({success:false,status: 400, message: err}).status(400)}
                     else{
                         return res.send({success: true, message: "Order created",orders: orderCreated,status: 200})
@@ -152,7 +152,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
         })
     })
  })
- router.delete('/removeOrder/orderId',[authMiddleWare],(req,res)=>{
+ router.delete('/removeOrder/:orderId',[authMiddleWare],(req,res)=>{
      req.getConnection((err,conn)=>{
          if(err){ return res.send({success:false,status: 500,message:err}).status(500)}
          conn.query('SELECT * FROM orders WHERE order_id = ?',[req.params.orderId],(err,isOrder)=>{
@@ -161,7 +161,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
                  return res.send({success: false,status: 404, message: "Order not found"}).status(404)
              }
              else if(isOrder.length == 1){
-                 conn.query('DELETE FORM foundOrders WHERE customer_order = ?',[req.params.orderId],(err,result)=>{
+                 conn.query('UPDATE foundOrders SET order_status = 0 WHERE customer_order = ?',[req.params.orderId],(err,result)=>{
                   if(err){return res.send({success:false,status: 400,message:err}).status(400)}
                   else{
                       conn.query('DELETE FROM orders WHERE order_id = ?',[req.params.orderId],(err,removed)=>{
@@ -180,4 +180,49 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
      })
  })
 
+ router.get('/checkedout/:vendorId/:orderId',(req,res)=>{ 
+     req.getConnection((error,conn)=>{
+        if(error){return res.send({success:false,status: 500, message:error}).status(500)}
+        conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[req.params.vendorId],(err,isVendor)=>{
+            if(err)return req.send({success: false, status: 400, message: err}).status(400)
+            else if(isVendor.length == 0){
+                return res.send({success:false, status: 404, message: "Seller not found"}).status(400)
+            }
+            else if(isVendor.length == 1){
+                conn.query('SELECT * FROM orders WHERE order_id = ?',[req.params.orderId],(err,isOrder)=>{
+                    if(err)return res.send({success:false, status: 400,message: err}).status(400)
+                    else if(isOrder.length == 0){
+                        return res.send({success: false,status: 404, message: "Order not found"}).status(400)
+                    }
+                    else if(isOrder.length == 1 && isOrder[0].order_status == 0){
+                        return res.send({success: false, status: 404, message: "Order was caunceled out"}).status(404)
+                    }
+                    else if(isOrder.length == 1 && isOrder[0].order_status == 1){
+                        conn.query('SELECT * FROM foundOrders WHERE customer_order = ? AND seller = ?',
+                        [req.params.orderId,req.params.vendorId],(err,isCheckedOut)=>{
+                            if(err) return res.send({success: false, status: 400, message: err}).status(400)
+                            else{
+                                if(isCheckedOut.length == 0){
+                                    return res.send({success: false, status: 200,message: "Order not checked out"}).status(200)
+                                }
+                                else if(isCheckedOut.length == 1){
+                                    return res.send({success: true, status: 200, message:"Order is checked out"}).status(200)
+                                }
+                                else{
+                                    return res.send({success: false, status: 400, message: "An error occured"}).status(400)
+                                }
+                            }
+                        })
+                    }
+                    else{
+                        return res.send({success: false, status: 400, message: 'An error occured'}).status(400)
+                    }
+                })
+            }
+            else{
+                return res.send({success:false,status: 400, message: "An error occured"}).status(400)
+            }
+        })
+     })
+ })
  module.exports=router;

@@ -28,7 +28,7 @@ router.post('/',(req,res)=>{
                         [data.order,data.seller],(err,orderAlreadyReported)=>{
                             if(err){ return res.send({success: false, status: 400, message: err}).status(400)}
                             else if(orderAlreadyReported.length > 0){
-                                return res.send({success: false, status: 208, message:"Order already reported"})
+                                return res.send({success: false, status: 208, message:"Order already checkedout"})
                                 .status(208)
                             }
                             else{
@@ -51,5 +51,51 @@ router.post('/',(req,res)=>{
         })
     })
 })
-
+// router.get('/customerOrder/:userId',(req,res)=>{
+//     req.getConnection((err,conn)=>{
+//         if(err) return res.send({success:false,status: 500, message: err}).status(400)
+//         conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],(err,isUser)=>{
+//             if(err) return res.send({success: false, status: 400, message: err}).status(400)
+//             else if(isUser.length == 0){
+//                 return res.send({success: false,status: 404, message: "User not found"}).status(404)
+//             }
+//             else if(isUser.length == 1){
+//                 conn.query('SELECT * FROM foundOrders WHERE ')
+//             }
+//             else{
+//                 return res.send({success:false, status: 400, message: "An error occured"}).status(400)
+//             }
+//         })
+//     }) 
+// })
+router.get('/:orderId',(req,res)=>{
+    req.getConnection((err,conn)=>{
+        if(err)return res.send({success: false, status: 500, message: err}).status(500)
+        conn.query('SELECT * from orders WHERE order_id = ?',[req.params.orderId],(err,isOrder)=>{
+            if(err) return res.send({success:false, status: 400, message:err}).status(400)
+            else if(isOrder.length ==  0){
+                return res.send({success: false, status: 404, message: "Invalid order"}).status(400)
+            }
+            else if(isOrder.length == 1){
+                conn.query('SELECT * FROM foundOrders WHERE customer_order = ?',
+                [req.params.orderId],(err,orderFound)=>{
+                    if(err){return res.send({success:false,status: 400,})}
+                    else if(orderFound.length > 0){
+                        return res.send({success: true,status: 200,founds: orderFound.length,
+                            message:"Found",foundOrder: orderFound})
+                        .status(200);
+                    }
+                    else if(orderFound.length == 0){
+                        return res.send({success:true, status:404, founds:0,message:"Pending"})
+                        .status(404);
+                    }
+                })
+            }
+            else{
+                return res.send({success: false, status: 400,message: "An error occured"}).status(400)
+            }
+        })
+        
+    })
+})
 module.exports=router;
