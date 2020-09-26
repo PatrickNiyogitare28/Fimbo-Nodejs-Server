@@ -47,7 +47,7 @@ app.use(myConnection(mysql, {
 
   app.use('/utils/uploads/productsImages', express.static('utils/uploads/productsImages'));
   app.use('/utils/uploads/vendorsLogos', express.static('utils/uploads/vendorsLogos'));
-
+  app.use('/utils/uploads/orderImages',express.static('utils/uploads/orderImages'))
   app.use('/utils/uploads/productsImages/:id',(req,res,next)=>{
       next();
   })

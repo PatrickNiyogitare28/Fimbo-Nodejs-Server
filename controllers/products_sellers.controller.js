@@ -11,9 +11,6 @@ const {jwtSignUser} = require('../utils/jwt/jwtUserSigner');
 const _ = require('lodash')
 const {ImageUniqueName } = require('../utils/uniqueIds/imageUniqueName')
 const multer = require('multer');
-
-
-
 const bcrypt = require('bcrypt')
 
 const router = express.Router();
@@ -284,34 +281,30 @@ router.get('/sellers',(req,res)=>{
     })
 })
 
-router.get('/seller/:id',(req,res)=>{
+router.get('/:id',(req,res)=>{
     req.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',req.params.id,(err,seller)=>{
-            if(seller.length == 0){
+            if(err){
+                res.send({
+                    error: err,
+                    success: false,
+                    status: 400
+                }).status(400)
+            }
+           else if(seller.length == 0){
                 res.send({
                     success: false,
                     status: 404,
                     message: "seller not found"
                 }).status(404)
             }
-            else{
-                conn.query('SELECT *FROM productsSellers WHERE seller_id = ?',req.params.id,(err,seller)=>{
-                    if(err){
-                        res.send({
-                            error: err,
-                            success: false,
-                            status: 400
-                        }).status(400)
-                    }
-                    else{
-                        res.send({
-                            success: true,
-                            status: 200,
-                            seller: seller
-                        })
-                    }
+             else{
+                res.send({
+                    success: true,
+                    status: 200,
+                    seller: seller
                 })
-            }
+           }
      })
     })
 })
@@ -412,6 +405,34 @@ router.delete('/removeSeller/:id',[adminMiddleWare],(req,res)=>{
         })
 
        
+    })
+})
+
+router.get('/sellerInfo/:sellerId',(req,res)=>{
+    req.getConnection((err,conn)=>{
+        conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[req.params.sellerId],(err,seller)=>{
+            if(err){
+                res.send({error: err,success: false,status: 400}).status(400)
+            }
+           else if(seller.length == 0){
+                res.send({success: false,status: 404,message: "seller not found"}).status(404)
+            }
+             else{
+                 res.send({success: true,status: 200,
+                    info: _.pick(seller[0],[
+                        'seller_name',
+                        'seller_watsapp_phone',
+                        'seller_contact_phone',
+                        'seller_country',
+                        'seller_district',
+                        'seller_sector',
+                        'seller_email',
+                        'seller_town',
+                        'sellerLogo'
+                    ])
+                })
+           }
+     })
     })
 })
 module.exports=router;
