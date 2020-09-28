@@ -10,6 +10,7 @@ router.post('/',(req,res)=>{
         customer_order: data.order,
         seller: data.seller
     }
+    
     req.getConnection((err,conn)=>{
         if(err) return res.send({success: false, status: 500, message: err}).status(500)
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[data.seller],(err,foundSeller)=>{

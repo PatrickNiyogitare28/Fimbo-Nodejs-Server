@@ -319,4 +319,25 @@ router.put('/updatePassword',[authMiddleWare],async(req,res)=>{
         })
     })
 })
+router.get('/:userId',(req,res)=>{
+    console.log(req.params.userId)
+   req.getConnection((error,conn)=>{
+        if(error) return res.send({success:false, status: 500, message:error}).status(500);
+        conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],
+        (err,user)=>{
+            if(err){return res.send({success: false, status: 400, message: err}).status(400)}
+            else if(user.length == 0){
+                return res.send({success:false, status: 404, message: "User not found"}).status(400);
+            }
+            else{
+                res.send({
+                     success: true,
+                     status: 200,
+                     user: _.pick(user[0],['firstname','lastname','email','phone'])}).status(200);
+                     console.log(user[0])
+            }
+           
+        })  
+    })
+})
 module.exports=router;

@@ -4,6 +4,7 @@
  const multer = require('multer');
  const router = express.Router();
  const {ImageUniqueName} = require('../utils/uniqueIds/imageUniqueName');
+ const _ = require('lodash');
 
  router.post('/newOrder',[authMiddleWare],(req,res)=>{
      const data = req.body;
@@ -223,6 +224,24 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
                 return res.send({success:false,status: 400, message: "An error occured"}).status(400)
             }
         })
+     })
+ })
+ router.get('/:orderId',(req,res)=>{
+  req.getConnection((error,conn)=>{
+         if(error) return res.send({success:false, status: 500, message:error}).status(500);
+         conn.query('SELECT * FROM orders WHERE order_id = ?',[req.params.orderId],
+         (err,isOrder)=>{
+             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
+             else if(isOrder.length == 0){
+                 return res.send({success:false, status: 404, message: "Order not found"}).status(400);
+             }
+             else{
+             res.send({success: true, status: 200,
+                     order: _.pick(isOrder[0],['order_id','order_name','description','user',
+                    'order_status','orderImage','order_date'])}).status(200);
+                    
+             }
+         })  
      })
  })
  module.exports=router;
