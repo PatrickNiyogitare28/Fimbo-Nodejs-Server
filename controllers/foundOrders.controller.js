@@ -99,4 +99,29 @@ router.get('/:orderId',(req,res)=>{
         
     })
 })
+
+router.put('/uncheckOrder/:vendorId/:orderId',(req,res)=>{
+    req.getConnection((error,conn)=>{
+        if(error) return res.send({success: false, status: 500, message:error}).status(500)
+        conn.query('SELECT * FROM foundOrders WHERE customer_order = ? AND seller = ?',
+        [req.params.orderId,req.params.vendorId],(err, order)=>{
+            if(err){return res.send({success: false, status: 400, message: err}).status(400)}
+            else if(order.length == 0){
+                return res.send({success: false, status: 404, message: "Order not found"}).status(404)
+            }
+            else if(order.length == 1){
+                conn.query('DELETE FROM foundOrders WHERE customer_order = ? and seller = ?',
+                [req.params.orderId,req.params.vendorId],(err,removed)=>{
+                    if(err){return res.send({success: false, status: 400, message: err}).status(400)}
+                    else {
+                        return res.send({success: true, status: 200, message:  "Order removed.", removed}).status(200)
+                    }
+                })
+            }
+            else{
+                return res.send({success: false, status: 400, message: "An error occured"}).status(400)
+            }
+        })
+    })
+})
 module.exports=router;
