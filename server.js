@@ -1,3 +1,4 @@
+require('dotenv').config;
 var express = require('express')
 var cors = require('cors')
 var bodyParser = require('body-parser')
@@ -19,6 +20,7 @@ const usersAddresseController = require('./controllers/usersAddresses.controller
 const planController = require('./controllers/plans.controller');
 const orderController = require('./controllers/orders.controller');
 const foundOrdersController = require('./controllers/foundOrders.controller');
+const secondarySlider = require('./controllers/displays/secondarySlider.controller')
 const authMiddleWare = require('./middlewares/auth');
 const adminMiddleWare = require('./middlewares/admin');
 const multer = require('multer')
@@ -35,15 +37,22 @@ app.use(
 )
 
 app.use(morgan('dev'));
-app.use(myConnection(mysql, {
-    host: 'localhost',
-    user: 'patrick',
-    password:'@vernom28_niyo',
-    port: 3306,
-    database: 'fimboEcommerceDb',
-    insecureAuth : true
-  }, 'single'));
- 
+
+try{
+    app.use(myConnection(mysql, {
+        host: 'localhost',
+        user: 'patrick',
+        password:'@vernom28_niyo',
+        port: 3306,
+        database: 'fimboEcommerceDb',
+        insecureAuth : true
+      }, 'single'));
+      console.log("MYSQL DB connecterd")
+}
+catch(e){
+    console.log('MYSQL connection Error: '+e)
+}
+
 
   app.use('/utils/uploads/productsImages', express.static('utils/uploads/productsImages'));
   app.use('/utils/uploads/vendorsLogos', express.static('utils/uploads/vendorsLogos'));
@@ -67,6 +76,7 @@ app.use(myConnection(mysql, {
   app.use('/api/plans',planController);
   app.use('/api/orders',orderController);
   app.use('/api/foundOrders',foundOrdersController);
+  app.use('/api/secondarySlider',secondarySlider);
   app.use('/uploads', express.static('uploads'));
  
  var port = process.env.PORT || 3000

@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const adminMiddleware = require('../../middlewares/admin');
 
-router.post('/set',[adminMiddleware],async(req,res) => {
-  const data = req.body;
+router.post('/addProduct/product/:product',async(req,res) => {
+  const data = {
+      product: req.params.product
+  };
   req.getConnection((err,conn)=> {
       if(err) return res.send({
           success: false,
@@ -39,7 +41,7 @@ router.post('/set',[adminMiddleware],async(req,res) => {
                   message: "Product already exist"
               }).status(409)
 
-              conn.query('INSERT INTO secondarySlider',[data],(err, porodutCreated)=> {
+              conn.query('INSERT INTO secondarySlider SET ?',[data],(err, porodutCreated)=> {
                 if(err) return res.send({
                     success: false,
                     status: 400,
@@ -49,7 +51,7 @@ router.post('/set',[adminMiddleware],async(req,res) => {
                 res.send({
                       success: true,
                       status: 200,
-                      message: "Product created"
+                      message: "Product Added successfully"
                   }).status(200);
               })
           })
@@ -57,7 +59,7 @@ router.post('/set',[adminMiddleware],async(req,res) => {
   })
 })
 
-router.get('/all',(req,res)=> {
+router.get('/getProducts',(req,res)=> {
     req.getConnection((err,conn)=> {
         if(err) return res.send({
             success: false,
@@ -80,3 +82,5 @@ router.get('/all',(req,res)=> {
         })
     })
 })
+
+module.exports = router;
