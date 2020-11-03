@@ -53,6 +53,9 @@ catch(e){
     console.log('MYSQL connection Error: '+e)
 }
 
+  app.use('',()=>{
+      res.send("Welcome to FIMBO online").status(200);
+  })
 
   app.use('/utils/uploads/productsImages', express.static('utils/uploads/productsImages'));
   app.use('/utils/uploads/vendorsLogos', express.static('utils/uploads/vendorsLogos'));
