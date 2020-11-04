@@ -1,4 +1,4 @@
-require('dotenv').config;
+require('dotenv').config();
 var express = require('express')
 var cors = require('cors')
 var bodyParser = require('body-parser')
@@ -40,20 +40,20 @@ app.use(morgan('dev'));
 
 try{
     app.use(myConnection(mysql, {
-        host: 'localhost',
-        user: 'patrick',
-        password:'@vernom28_niyo',
-        port: 3306,
-        database: 'fimboEcommerceDb',
+        host:  process.env.PROD_HOST,
+        user: process.env.PROD_USERSNAME,
+        password:  process.env.PROD_PASSWORD,
+        port:  process.env.PROD_DB_PORT,
+        database:  process.env.PROD_DB,
         insecureAuth : true
       }, 'single'));
       console.log("MYSQL DB connecterd")
 }
 catch(e){
-    console.log('MYSQL connection Error: '+e)
+    console.log('MYSQL connection Error: '+e.sqlMessage)
 }
 
-  app.use('',()=>{
+  app.get('/',(req,res)=>{
       res.send("Welcome to FIMBO online").status(200);
   })
 
