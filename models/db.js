@@ -8,9 +8,9 @@ try{
         password :  process.env.PROD_PASSWORD,
         database : process.env.PROD_DB
     });
-    console.log("App connected to MYSQL DB")
+    
 }
 catch(e){
-    console.log("MYSQL connection error: "+e);
+   
 }
 
