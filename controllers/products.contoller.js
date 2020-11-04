@@ -8,6 +8,7 @@ const router = express.Router();
 const multer = require('multer');
 const crypto = require('crypto');
 const {ImageUniqueName } = require('../utils/uniqueIds/imageUniqueName')
+const {pool} = require('../models/db');
 
 router.post('/newProduct', [authMiddleWare, adminMiddleWare], (req, res) => {
     const data = req.body;
@@ -39,7 +40,7 @@ router.post('/newProduct', [authMiddleWare, adminMiddleWare], (req, res) => {
         usedStatus: productUsedStatus,
         readStatus: 0
     }
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
 
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?', productSeller, (err, seller) => {
             if (seller.length == 0) {
@@ -119,7 +120,7 @@ router.post('/addProduct',(req,res)=>{
         usedStatus: data.usedStatus,
         readStatus: 0
     }
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){return res.send({success:false,status: 500, message: err}).status(500)}
         conn.query('SELECT * FROM productsCategories  WHERE category_id = ?',[newProduct.prod_category],(err,foundCategory)=>{
             if(err){return res.send({success:false,status: 400, message: err}).status(400)}
@@ -239,7 +240,7 @@ router.post('/productImage', upload.single('file'), (req, res, next) => {
         return next(error)
     }
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query(' UPDATE products SET image_name= ? WHERE product_id= ?', [file.filename, productId], (err, product) => {
             if (err) {
                 return res.send({
@@ -273,7 +274,7 @@ router.post('/updateProductImage', upload.single('file'), (req, res, next) => {
         return next(error)
     }
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query(' UPDATE products SET image_name= ? WHERE product_id= ?', [file.filename, productId], (err, product) => {
             if (err) {
                 return res.send({
@@ -294,7 +295,7 @@ router.post('/updateProductImage', upload.single('file'), (req, res, next) => {
 //----------------------------------------end of updating product image-------------------------------------------
 
 router.get('/product/:id', (req, res) => {
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM products WHERE product_id = ?', req.params.id, (err, product) => {
             if (product.length == 0) {
                 res.send({
@@ -387,7 +388,7 @@ router.get('/product/:id', (req, res) => {
 })
 
 router.get('/allProducts', (req, res) => {
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM products', (err, products) => {
             res.send({
                 success: true,
@@ -400,7 +401,7 @@ router.get('/allProducts', (req, res) => {
 
 //------------------------------------------get all products by categories-----------------------------------
 router.get('/productsByCategory/:catId', (req, res) => {
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsCategories WHERE category_id = ?',req.params.catId,(err,foundCategory)=>{
             if(err){
                 return res.send({
@@ -445,7 +446,7 @@ router.put('/updateCollection/:id', [adminMiddleWare], (req, res) => {
     const colId = req.params.id;
     const newCollection = req.body;
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsCollections WHERE collection_id = ?', colId, (err, collection) => {
             if (collection.length == 0) {
                 return res.send({
@@ -481,7 +482,7 @@ router.put('/updateCollection/:id', [adminMiddleWare], (req, res) => {
 //---------------------------------------------get products by categories---------------------------------------
 router.get('/byCategory/:id', (req, res) => {
     console.log("hello..")
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsCategories WHERE category_id = ?', req.params.id, (err, category) => {
             if (category.length == 0) {
                 res.send({
@@ -517,7 +518,7 @@ router.get('/byCategory/:id', (req, res) => {
 //---------------------------------------------get products by collection---------------------------------------
 router.get('/byCollection/:id', (req, res) => {
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsCollections WHERE collection_id = ?', req.params.id, (err, collection) => {
             if (collection.length == 0) {
                 res.send({
@@ -553,7 +554,7 @@ router.get('/byCollection/:id', (req, res) => {
 //---------------------------------------------get products by mark---------------------------------------
 router.get('/byMark/:id', (req, res) => {
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsMarks WHERE mark_id = ?', req.params.id, (err, mark) => {
             if (mark.length == 0) {
                 res.send({
@@ -588,7 +589,7 @@ router.get('/byMark/:id', (req, res) => {
 
 //---------------------------------------------get products by sellers---------------------------------------
 router.get('/bySeller/:id', (req, res) => {
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?', [req.params.id], (err, isFound) => {
          if (isFound.length == 0) {
                 res.send({
@@ -624,7 +625,7 @@ router.get('/bySeller/:id', (req, res) => {
 router.put('/updateProduct/:id', [authMiddleWare], (req, res) => {
 
   //--------------------------------------------check if the product exists-------------------------------
-  req.getConnection((err,conn)=>{
+  pool.getConnection((err,conn)=>{
       conn.query('SELECT * FROM products WHERE product_id = ?',[req.params.id],(err,foundProduct)=>{
           if(err){
               res.send({
@@ -669,7 +670,7 @@ router.put('/updateProduct/:id', [authMiddleWare], (req, res) => {
                     price: productPrice,
                     usedStatus: productUsedStatus
                 }
-                req.getConnection((err, conn) => {
+                pool.getConnection((err, conn) => {
                     
                     conn.query('SELECT * FROM productsSellers WHERE seller_id = ?', [productSeller], (err, seller) => {
                         if (seller.length == 0) {
@@ -740,7 +741,7 @@ router.put('/updateProduct/:id', [authMiddleWare], (req, res) => {
 })
 
 router.delete('/removeProduct/:id',[authMiddleWare],(req,res)=>{
-  req.getConnection((err,conn)=>{
+  pool.getConnection((err,conn)=>{
       conn.query('SELECT * FROM products WHERE product_id = ?',[req.params.id],(err,foundProduct)=>{
           if(err){
               res.send({
@@ -781,7 +782,7 @@ router.delete('/removeProduct/:id',[authMiddleWare],(req,res)=>{
 
 //--------------------------------------------get products in the same collection---------------------------
 router.get('/relatedCollectionProducts/:productId',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             res.send({
                 success: false,

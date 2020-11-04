@@ -1,13 +1,15 @@
 const express = require('express');
 const {validateAddress } = require('../utils/validators/usesAddress.validator')
 const router = express.Router();
-const authMiddleWare = require('../middlewares/auth')
+const authMiddleWare = require('../middlewares/auth');
+const {pool} = require('../models/db');
+
 
 router.post('/addAddress',[authMiddleWare],(req,res)=>{
      const data = req.body;
      const {error} = validateAddress(data)
      if(error) return res.send({success: false,status: 400, message: error.details[0].message}).status(400)
-      req.getConnection((err,conn)=>{
+      pool.getConnection((err,conn)=>{
           if(err){
              return  res.send({
                   success: false,
@@ -83,7 +85,7 @@ router.put('/updateAddress',[authMiddleWare],(req,res)=>{
     const {error} = validateAddress(data)
     if(error) return res.send({success: false,status: 400, message: error.details[0].message}).status(400)
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             return  res.send({
                  success: false,
@@ -152,7 +154,7 @@ router.put('/updateAddress',[authMiddleWare],(req,res)=>{
 
 router.get('/userAddress/:user',(req,res)=>{
     const user = req.params.user;
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             return  res.send({
                  success: false,
@@ -207,7 +209,7 @@ router.get('/userAddress/:user',(req,res)=>{
 
 router.delete('/removeAddress/:user',[authMiddleWare],(req,res)=>{
     const user = req.params.user;
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             return  res.send({
                  success: false,

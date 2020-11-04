@@ -14,6 +14,8 @@ const multer = require('multer');
 const bcrypt = require('bcrypt')
 
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/newSeller',(req,res)=>{
     console.log(req.body)
@@ -35,7 +37,7 @@ router.post('/newSeller',(req,res)=>{
         bussiness_description: req.body.bussiness_description
 }
 
-req.getConnection((err,conn)=>{
+pool.getConnection((err,conn)=>{
     if(err){return res.send({success: false, status: 500,  message: err}).status(500)}
     else{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[sellerData.seller_id],(err,isIdUsed)=>{
@@ -86,7 +88,7 @@ router.post('/addSellerPassoword',async(req,res)=>{
     var hashedPass = await hashPassword(req.body.password);
     // var hashedPass = req.body.password
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){return res.send({success: false, status: 500, message: err}).status(500)}
         conn.query('SELECT*FROM productsSellers WHERE seller_id = ?',[req.body.sellerId],(err,isSeller)=>{
             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -146,7 +148,7 @@ router.post('/addSellerLogo', upload.single('file'), (req, res, next) => {
         return next(error)
     }
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){return res.send({success: false, status: 500, message: err})}
         conn.query('SELECT*FROM productsSellers WHERE seller_id = ?',[sellerId],(err,isSeller)=>{
             if(err){return re.send({success: false, status: 400, message: err}).status(400)}
@@ -172,7 +174,7 @@ router.post('/addSellerLogo', upload.single('file'), (req, res, next) => {
 
 router.post('/activateSellerAccount',(req,res)=>{
     const data = req.body;
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             return  res.send({success: false, status: 500, message: err}).status(500)
         }
@@ -206,7 +208,7 @@ router.post('/vendor/login',async(req,res)=>{
   const body = req.body;  
   const {error} = validateLoginUserData(body)
     if(error) return res.send({success: false, status: 400, message: error.details[0].message}).status(500)
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err) return res.send({success: false, status: 500, message: err}).status(500)
         conn.query('SELECT*FROM productsSellers WHERE seller_contact_phone = ?',[body.phone],async(err,isSeller)=>{
             console.log(isSeller.length)
@@ -243,7 +245,7 @@ router.post('/resendVerificationCode',(req,res)=>{
     const vendorId = req.body.sellerId;
     if(!vendorId) return res.send({success: false, status: 400, message: 'vendor-id header not found'});
     const code = getEmailVerCode();
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
        if(err){ return res.send({success: false, status: 500, message: err})} 
        conn.query('SELECT*FROM productsSellers WHERE seller_id = ?', [vendorId],(err,isVendor)=>{
            if(err){ return res.send({success: false, status: 400, message: err}).status(400)}
@@ -265,7 +267,7 @@ router.post('/resendVerificationCode',(req,res)=>{
 })
 })
 router.get('/sellers',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers',(err,sellers)=>{
             if(err){
                 res.send({error: err,success:false,status:400}).status(400);
@@ -282,7 +284,7 @@ router.get('/sellers',(req,res)=>{
 })
 
 router.get('/:id',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',req.params.id,(err,seller)=>{
             if(err){
                 res.send({
@@ -316,7 +318,7 @@ router.put('/updateSeller/:id',[authMiddleWare],(req,res)=>{
     const sellerId = req.params.id; 
     console.log("Seller id"+sellerId);
     const newSeller = req.body;
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[sellerId],(err,seller)=>{
           if(err){return res.send({success:false, status: 400, message: err}).status(400)}  
           if(seller.length == 0){
@@ -362,7 +364,7 @@ router.put('/updateSeller/:id',[authMiddleWare],(req,res)=>{
 
 router.delete('/removeSeller/:id',[adminMiddleWare],(req,res)=>{
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',req.params.id,(err,seller)=>{
             if(seller.length == 0){
                 res.send({
@@ -409,7 +411,7 @@ router.delete('/removeSeller/:id',[adminMiddleWare],(req,res)=>{
 })
 
 router.get('/sellerInfo/:sellerId',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[req.params.sellerId],(err,seller)=>{
             if(err){
                 res.send({error: err,success: false,status: 400}).status(400)

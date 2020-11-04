@@ -3,13 +3,15 @@ const express = require('express');
 const {productsMarksValidator} = require('../utils/validators/productsMarks.validator');
 const adminMiddleWare = require('../middlewares/admin');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/newMark',[adminMiddleWare],(req,res)=>{
     const data = req.body;
     const {error} =  productsMarksValidator(data);
     if(error) return res.send(error.details[0].message).status(403);
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('INSERT INTO productsMarks SET ?',[data],(err,mark)=>{
              if(err){
                 
@@ -22,7 +24,7 @@ router.post('/newMark',[adminMiddleWare],(req,res)=>{
 })
 
 router.get('/marks',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsMarks',(err,marks)=>{
             if(err){
                 res.send({error: err,success:false,status:400}).status(400);
@@ -39,7 +41,7 @@ router.get('/marks',(req,res)=>{
 })
 
 router.get('/mark/:id',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
     conn.query('SELECT * FROM productsMarks WHERE mark_id = ?',req.params.id,(err,mark)=>{
         if(mark.length == 0){
             res.send({
@@ -83,7 +85,7 @@ router.put('/updateMark/:id',[adminMiddleWare],(req,res)=>{
     const markId = req.params.id;
     const newMark = req.body;
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsMarks WHERE mark_id = ?',markId,(err,mark)=>{
           if(mark.length == 0){
               return res.send({
@@ -119,7 +121,7 @@ router.put('/updateMark/:id',[adminMiddleWare],(req,res)=>{
 })
 router.delete('/removeMark/:id',[adminMiddleWare],(req,res)=>{
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsMarks WHERE mark_id = ?',req.params.id,(err,mark)=>{
             if(mark.length == 0){
                 res.send({

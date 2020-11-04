@@ -2,6 +2,8 @@ const config = require('config')
 const jwt  =  require('jsonwebtoken')
 const express = require('express');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.get('/jwt',(req,res)=>{
     const token = req.header('x-auth-token')
@@ -13,7 +15,7 @@ router.get('/jwt',(req,res)=>{
     
         const decoded = jwt.verify(token,config.get('jwtPrivateKey'))
         const user = decoded;
-        req.getConnection((err,conn)=>{
+        pool.getConnection((err,conn)=>{
             if(err) return res.send({success: false,status: 500,message: err}).status(400)
                conn.query('SELECT * FROM users WHERE user_id = ?',[user.user_id],(err,foundUser)=>{
                   if(err) {return res.send({success: false,status: 400,message: err }).status(400)}
@@ -38,7 +40,7 @@ router.get('/jwt',(req,res)=>{
     
         const decoded = jwt.verify(token,config.get('jwtPrivateKey'))
         const vendor = decoded;
-        req.getConnection((err,conn)=>{
+        pool.getConnection((err,conn)=>{
             if(err) return res.send({success: false,status: 500,message: err}).status(500)
                conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[vendor.seller_id],(err,foundVendor)=>{
                   if(err) {return res.send({success: false,status: 400,message: err }).status(400)}

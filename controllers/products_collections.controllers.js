@@ -3,13 +3,15 @@ const express = require('express');
 const {productsCollectionsValidator} = require('../utils/validators/productsCollections.validators');
 const adminMiddleWare = require('../middlewares/admin');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/newCollection',[adminMiddleWare],(req,res)=>{
     const data = req.body;
     const {error} =  productsCollectionsValidator(data);
     if(error) return res.send(error.details[0].message).status(403);
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('INSERT INTO productsCollections SET ?',[data],(err,collection)=>{
              if(err){
                 
@@ -22,7 +24,7 @@ router.post('/newCollection',[adminMiddleWare],(req,res)=>{
 })
 
 router.get('/collections',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCollections',(err,collections)=>{
             if(err){
                 res.send({error: err,success:false,status:400}).status(400);
@@ -39,7 +41,7 @@ router.get('/collections',(req,res)=>{
 })
 
 router.get('/collection/:id',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCollections WHERE collection_id = ?',req.params.id,(err,collection)=>{
             if(collection.length == 0){
                 res.send({
@@ -82,7 +84,7 @@ router.put('/updateCollection/:id',[adminMiddleWare],(req,res)=>{
     const colId = req.params.id;
     const newCollection = req.body;
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCollections WHERE collection_id = ?',colId,(err,collection)=>{
           if(collection.length == 0){
               return res.send({
@@ -118,7 +120,7 @@ router.put('/updateCollection/:id',[adminMiddleWare],(req,res)=>{
 })
 router.delete('/removeCollection/:id',[adminMiddleWare],(req,res)=>{
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCollections WHERE collection_id = ?',req.params.id,(err,collection)=>{
             if(collection.length == 0){
                 res.send({

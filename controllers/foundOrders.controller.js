@@ -1,6 +1,8 @@
 const express = require('express');
 const {foundProductValidator} = require('../utils/validators/foundProduct.validator');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/',(req,res)=>{
     const data = req.body;
@@ -11,7 +13,7 @@ router.post('/',(req,res)=>{
         seller: data.seller
     }
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err) return res.send({success: false, status: 500, message: err}).status(500)
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[data.seller],(err,foundSeller)=>{
             if(err){return res.send({success:false, status: 400, message: err}).status(400)}
@@ -53,7 +55,7 @@ router.post('/',(req,res)=>{
     })
 })
 // router.get('/customerOrder/:userId',(req,res)=>{
-//     req.getConnection((err,conn)=>{
+//     pool.getConnection((err,conn)=>{
 //         if(err) return res.send({success:false,status: 500, message: err}).status(400)
 //         conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],(err,isUser)=>{
 //             if(err) return res.send({success: false, status: 400, message: err}).status(400)
@@ -70,7 +72,7 @@ router.post('/',(req,res)=>{
 //     }) 
 // })
 router.get('/:orderId',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err)return res.send({success: false, status: 500, message: err}).status(500)
         conn.query('SELECT * from orders WHERE order_id = ?',[req.params.orderId],(err,isOrder)=>{
             if(err) return res.send({success:false, status: 400, message:err}).status(400)
@@ -101,7 +103,7 @@ router.get('/:orderId',(req,res)=>{
 })
 
 router.put('/uncheckOrder/:vendorId/:orderId',(req,res)=>{
-    req.getConnection((error,conn)=>{
+    pool.getConnection((error,conn)=>{
         if(error) return res.send({success: false, status: 500, message:error}).status(500)
         conn.query('SELECT * FROM foundOrders WHERE customer_order = ? AND seller = ?',
         [req.params.orderId,req.params.vendorId],(err, order)=>{
