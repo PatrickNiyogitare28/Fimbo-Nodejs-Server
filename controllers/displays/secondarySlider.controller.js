@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const adminMiddleware = require('../../middlewares/admin');
+const {pool} = require('../../models/db');
+
 
 router.post('/addProduct/product/:product',async(req,res) => {
   const data = {
       product: req.params.product
   };
-  req.getConnection((err,conn)=> {
+  pool.getConnection((err,conn)=> {
       if(err) return res.send({
           success: false,
           status: 500,
@@ -60,7 +62,7 @@ router.post('/addProduct/product/:product',async(req,res) => {
 })
 
 router.get('/getProducts',(req,res)=> {
-    req.getConnection((err,conn)=> {
+    pool.getConnection((err,conn)=> {
         if(err) return res.send({
             success: false,
             status: 500,

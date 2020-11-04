@@ -2,12 +2,14 @@ const express = require('express');
 const {validatePlan,updatePlanValidator} = require('../utils/validators/plan.validator');
 const adminMiddleWare = require('../middlewares/admin');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/newPlan',[adminMiddleWare],(req,res)=>{
  const newPlan = req.body;   
  const {error} = validatePlan(newPlan);
  if(error) return res.send({success: false, status: 400, message: error.details[0].message}).status(400);
- req.getConnection((err,conn)=>{
+ pool.getConnection((err,conn)=>{
      if(err){ return res.send({success: false, status: 500, message: err}).status(500)}
      conn.query('INSERT INTO plans SET ?',[newPlan],(err,isCreated)=>{
       if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -18,7 +20,7 @@ router.post('/newPlan',[adminMiddleWare],(req,res)=>{
  })
 })
 router.get('/availablePlans',(req,res)=>{
-   req.getConnection((err,conn)=>{
+   pool.getConnection((err,conn)=>{
     if(err){ return res.send({success: false, status: 500, message: err}).status(500)}
     conn.query('SELECT * FROM plans ORDER BY `plan_id` ASC',(err,plans)=>{
       if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -29,7 +31,7 @@ router.get('/availablePlans',(req,res)=>{
    })
 })
 router.get('/:planId',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){ return res.send({success: false, status: 500, message: err}).status(500)}
         conn.query('SELECT * FROM plans WHERE plan_id = ?',[req.params.planId],(err,plan)=>{
           if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -44,7 +46,7 @@ router.get('/:planId',(req,res)=>{
     })
 })
 router.delete('/removePlan/:planId',[adminMiddleWare],(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){ return res.send({success: false, status: 500, message: err}).status(500)}
         conn.query('SELECT * FROM plans WHERE plan_id = ?',[req.params.planId],(err,planValid)=>{
             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -74,7 +76,7 @@ router.put('/updatePlan',[adminMiddleWare],(req,res)=>{
         description: req.body.description,
         max_products: req.body.max_products
     } 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
     if(err){ return res.send({success: false, status: 500, message: err}).status(500)}
     conn.query('SELECT * FROM plans WHERE plan_id = ?',[req.body.planId],(err,planValid)=>{
         if(err){return res.send({success: false, status: 400, message: err}).status(400)}

@@ -3,13 +3,15 @@ const express = require('express');
 const {productsCategoriesValidator} = require('../utils/validators/productsCategories.validator');
 const adminMiddleWare = require('../middlewares/admin');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/newCategory',[adminMiddleWare],(req,res)=>{
     const data = req.body;
     const {error} =  productsCategoriesValidator(data);
     if(error) return res.send(error.details[0].message).status(403);
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('INSERT INTO productsCategories SET ?',[data],(err,category)=>{
              if(err){
                 
@@ -22,7 +24,7 @@ router.post('/newCategory',[adminMiddleWare],(req,res)=>{
 })
 
 router.get('/categories',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT *FROM productsCategories',(err,categories)=>{
             if(err){
                 res.send({error: err,success:false,status:400}).status(400);
@@ -40,7 +42,7 @@ router.get('/categories',(req,res)=>{
 })
 
 router.get('/category/:id',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCategories WHERE category_id = ?',req.params.id,(err,category)=>{
             if(category.length == 0){
                 res.send({
@@ -84,7 +86,7 @@ router.put('/updateCategory/:id',[adminMiddleWare],(req,res)=>{
     const catId = req.params.id;
     const newCategory = req.body;
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCategories WHERE category_id = ?',catId,(err,category)=>{
           console.log("categoryLength"+category.length)  
           if(category.length == 0){
@@ -121,7 +123,7 @@ router.put('/updateCategory/:id',[adminMiddleWare],(req,res)=>{
 })
 router.delete('/removeCategory/:id',[adminMiddleWare],(req,res)=>{
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM productsCategories WHERE category_id = ?',req.params.id,(err,category)=>{
             if(category.length == 0){
                 res.send({

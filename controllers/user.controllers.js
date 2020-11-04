@@ -8,8 +8,8 @@ const hashPassword = require('../utils/hashes/hash_password/hash_password');
 const {UserUniqueId} = require('../utils/uniqueIds/userUniqueId');
 const router = express.Router();
 const adminMiddleWare = require('../middlewares/admin');
-const authMiddleWare = require('../middlewares/auth')
-
+const authMiddleWare = require('../middlewares/auth');
+const {pool} = require('../models/db');
 
 router.post('/register',async(req,res)=>{
    
@@ -19,7 +19,7 @@ router.post('/register',async(req,res)=>{
       return res.send(error.details[0].message).status(400);
     }
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM users WHERE phone = ?',req.body.phone,async(err,user)=>{
             console.log(user.length)
            
@@ -50,7 +50,7 @@ router.post('/register',async(req,res)=>{
                         created_date: createdDate
 
                     }
-                req.getConnection((err,conn)=>{
+                pool.getConnection((err,conn)=>{
                     conn.query('INSERT INTO users set ?', [userData],(err,user)=>{
                         if(err){
                             res.send({
@@ -75,7 +75,7 @@ router.post('/login',async(req,res)=>{
         res.send(error.details[0].message);
     }
     else{
-        req.getConnection((err,conn)=>{
+        pool.getConnection((err,conn)=>{
             conn.query('SELECT*FROM users WHERE phone = ?',[req.body.phone],async(err,user)=>{
                if(err){
                     res.send({
@@ -124,7 +124,7 @@ router.post('/login',async(req,res)=>{
 
 router.get('/allUsers',(req,res)=>{
     let usersArr=[]
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT*FROM users',(err,users)=>{
             if(err){
                 res.send({
@@ -175,7 +175,7 @@ router.put('/updateUser/:id',[adminMiddleWare],(req,res)=>{
             status: 400
         }).status(400)
     }
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT*FROM users WHERE user_id = ?',req.params.id,(err,user)=>{
             if(err){
                 res.send({
@@ -216,7 +216,7 @@ router.put('/updateUser/:id',[adminMiddleWare],(req,res)=>{
 })
 
 router.delete('/removeUser/:id',[adminMiddleWare],(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM users WHERE user_id = ?',req.params.id,(err,foundUser)=>{
             if(err){
                 res.send({
@@ -260,7 +260,7 @@ router.put('/updateProfile',[authMiddleWare],(req,res)=>{
     const data = req.body
     const {error} = updateUserProfile(data)
     if(error){ return res.send({success: false,status: 400, message: error.details[0].message}).status(400) }
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){return res.send({success: false, status: 500,message: err}).status(500)}
         else{
           conn.query('SELECT * FROM users WHERE user_id = ?',[data.userId],(err,userIsFound)=>{
@@ -294,7 +294,7 @@ router.put('/updatePassword',[authMiddleWare],async(req,res)=>{
     const data = req.body;
     const {error} = updateUserPassword(data)
     if(error) return res.send({success: false, status: 200, message: error.details[0].message}).status(200)
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err) return res.send({success: false,status: 500, message: err}).status(500)
         conn.query('SELECT * FROM users WHERE user_id = ?',[data.userId],async(err,isUserFound)=>{
             if(err) return res.send({success: false, status: 400, message: err}).status(400)
@@ -321,7 +321,7 @@ router.put('/updatePassword',[authMiddleWare],async(req,res)=>{
 })
 router.get('/:userId',(req,res)=>{
     console.log(req.params.userId)
-   req.getConnection((error,conn)=>{
+   pool.getConnection((error,conn)=>{
         if(error) return res.send({success:false, status: 500, message:error}).status(500);
         conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],
         (err,user)=>{

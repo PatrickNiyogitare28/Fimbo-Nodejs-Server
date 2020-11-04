@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const adminMiddleWare = require('../../middlewares/admin');
+const {pool} = require('../../models/db');
 
 router.get('/set',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM topDisplayDivisions',(err,topDivisions)=>{
             if(err){
                 res.send({
@@ -24,7 +25,7 @@ router.get('/set',(req,res)=>{
 })
 
 router.get('/withProducts/:id',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT * FROM topDisplayDivisions WHERE division_id = ?',req.params.id,(err,topDivision)=>{
             if(err){
                 res.send({
@@ -86,7 +87,7 @@ router.get('/withProducts/:id',(req,res)=>{
 
 router.post('/set',[adminMiddleWare],(req,res)=>{
     const data= req.body;
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
       conn.query('SELECT * FROM products WHERE product_id = ?',data.product,(err,foundProduct)=>{
           if(err){
             //   console.log("Error: "+err)
@@ -185,7 +186,7 @@ router.post('/set',[adminMiddleWare],(req,res)=>{
 
 router.delete('/removeProduct/:prodId/:divId',[adminMiddleWare],(req,res)=>{
   
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query("SELECT * FROM topDivs_productsIn WHERE division = ?",req.params.divId,(err,foundDiv)=>{
             if(err){
                 res.send({
@@ -280,7 +281,7 @@ router.put('/changeStatus/:divId',[adminMiddleWare],(req,res)=>{
         }).status(404)
     }
     else{
-        req.getConnection((err,conn)=>{
+        pool.getConnection((err,conn)=>{
             conn.query('SELECT * FROM topDisplayDivisions WHERE division_id = ?',req.params.divId,(err,foundDivision)=>{
                 if(err){
                     res.send({

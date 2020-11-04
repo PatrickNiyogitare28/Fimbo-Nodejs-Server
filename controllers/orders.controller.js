@@ -5,6 +5,8 @@
  const router = express.Router();
  const {ImageUniqueName} = require('../utils/uniqueIds/imageUniqueName');
  const _ = require('lodash');
+const {pool} = require('../models/db');
+
 
  router.post('/newOrder',[authMiddleWare],(req,res)=>{
      const data = req.body;
@@ -15,7 +17,7 @@
          user: data.user
      }
      if(error) return res.send({success: false, status: 400, message: error.details[0].message}).status(400)
-     req.getConnection((err,conn)=>{
+     pool.getConnection((err,conn)=>{
          if(err) return res.send({success:false,status: 500,message: err}).status(500)
          conn.query('SELECT * FROM users WHERE user_id = ?',[body.user],(err,isUser)=>{
              if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -67,7 +69,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
         return next(error)
     }
     
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err) return res.send({success:false,status: 500,message: err}).status(500)
         conn.query('SELECT * FROM orders WHERE order_id = ?',[orderId],(err,isOrder)=>{
           if(err){return res.send({success:false, status: 400, message: err}).status(400)}
@@ -88,7 +90,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
 })
 
  router.get('/allOrder',(req,res)=>{
-     req.getConnection((err,conn)=>{
+     pool.getConnection((err,conn)=>{
          if(err) return res.send({success: false,status: 500, message: err}).status(500)
           conn.query('SELECT * FROM orders  WHERE order_status = 1',(err,orders)=>{
              if(err) return res.send({success:false, status: 400,message: err}).status(400)
@@ -100,7 +102,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
  })
 
  router.get('/userOrders/:userId',[authMiddleWare],(req,res)=>{
-   req.getConnection((err,conn)=>{
+   pool.getConnection((err,conn)=>{
         if(err) return res.send({success:false,status: 500,message: err}).status(500)
         conn.query('SELECT * FROM users WHERE user_id = ?',[req.params.userId],(err,isUser)=>{
             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -131,7 +133,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
         user: data.user
     }
     if(error) return res.send({success: false, status: 400, message: error.details[0].message}).status(400)
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err) return res.send({success:false,status: 500,message: err}).status(500)
         conn.query('SELECT * FROM users WHERE user_id = ?',[body.user],(err,isUser)=>{
             if(err){return res.send({success: false, status: 400, message: err}).status(400)}
@@ -154,7 +156,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
     })
  })
  router.delete('/removeOrder/:orderId',[authMiddleWare],(req,res)=>{
-     req.getConnection((err,conn)=>{
+     pool.getConnection((err,conn)=>{
          if(err){ return res.send({success:false,status: 500,message:err}).status(500)}
          conn.query('SELECT * FROM orders WHERE order_id = ?',[req.params.orderId],(err,isOrder)=>{
              if(err){ return res.send({success:false,status: 400,message:err}).status(400)}
@@ -182,7 +184,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
  })
 
  router.get('/checkedout/:vendorId/:orderId',(req,res)=>{ 
-     req.getConnection((error,conn)=>{
+     pool.getConnection((error,conn)=>{
         if(error){return res.send({success:false,status: 500, message:error}).status(500)}
         conn.query('SELECT * FROM productsSellers WHERE seller_id = ?',[req.params.vendorId],(err,isVendor)=>{
             if(err)return req.send({success: false, status: 400, message: err}).status(400)
@@ -227,7 +229,7 @@ router.post('/addOrderImage', upload.single('file'), (req, res, next) => {
      })
  })
  router.get('/:orderId',(req,res)=>{
-  req.getConnection((error,conn)=>{
+  pool.getConnection((error,conn)=>{
          if(error) return res.send({success:false, status: 500, message:error}).status(500);
          conn.query('SELECT * FROM orders WHERE order_id = ?',[req.params.orderId],
          (err,isOrder)=>{

@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const {pool} = require('../models/db');
+
 
 router.post('/rate',(req,res)=>{
   const newRate = {
         product: req.body.productId,
         rates: 0
     }
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         conn.query('SELECT*FROM products WHERE product_id=?',req.body.productId,(err,foundProducts)=>{
             if(err){
                 res.send({
@@ -110,7 +112,7 @@ router.post('/rate',(req,res)=>{
 })
 
 router.get('/rates/:productId',(req,res)=>{
-  req.getConnection((err,conn)=>{
+  pool.getConnection((err,conn)=>{
     conn.query('SELECT*FROM products WHERE product_id=?',req.params.productId,(err,foundProduct)=>{
         if(err){
             res.send({
@@ -163,7 +165,7 @@ router.post('/unrate',(req,res)=>{
           product: req.body.productId,
           rates: 0
       }
-      req.getConnection((err,conn)=>{
+      pool.getConnection((err,conn)=>{
           conn.query('SELECT*FROM products WHERE product_id=?',req.body.productId,(err,foundProducts)=>{
               if(err){
                   res.send({

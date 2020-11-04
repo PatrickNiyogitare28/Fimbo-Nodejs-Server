@@ -2,7 +2,9 @@ const express  = require('express')
 const router = express.Router();
 const { validateEmailVerBody,validateEmailCode } = require('../utils/validators/emailVerification.validator')
 const { getEmailVerCode } = require('../utils/uniqueIds/emailVerificationCode')
-const authMiddleWare = require('../middlewares/auth')
+const authMiddleWare = require('../middlewares/auth');
+const {pool} = require('../models/db');
+
 
 router.post('/verify', [authMiddleWare],(req, res) => {
     const {
@@ -16,7 +18,7 @@ router.post('/verify', [authMiddleWare],(req, res) => {
         status: 0
     }
 
-    req.getConnection((err, conn) => {
+    pool.getConnection((err, conn) => {
         if (err) {
             return res.send({
                 success: false,
@@ -132,7 +134,7 @@ router.post('/verifyCode',(req,res)=>{
     const { error } = validateEmailCode(data)
     if(error) return res.send({success: false, status: 400, message: error.details[0].message}).status(400)
 
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if (err) {
             return res.send({
                 success: false,
@@ -232,7 +234,7 @@ router.put('/updateEmail',[authMiddleWare],(req,res)=>{
 }
  const {error} = validateEmailVerBody(req.body)
  if(error){ return res.send({success: false,status: 400, message: error.details[0].message}).status(400)}
- req.getConnection((err,conn)=>{
+ pool.getConnection((err,conn)=>{
      if(err){return res.send({success: false, status: 500, message: err}).status(500)}
      conn.query('SELECT*FROM users WHERE user_id = ? ',[data.user],(err,isUserFound)=>{
          if(err){ return res.send({success: false, status: 400, message: err}).status(400)}

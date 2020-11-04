@@ -2,6 +2,8 @@ const express = require('express')
 const router  = express.Router();
 const {validateData} = require('../utils/validators/productToCart.validator')
 const authMiddleWare = require('../middlewares/auth');
+const {pool} = require('../models/db');
+
 
 router.post('/addProduct',[authMiddleWare],(req,res)=>{
     const {error} = validateData(req.body)
@@ -13,7 +15,7 @@ router.post('/addProduct',[authMiddleWare],(req,res)=>{
                             }).status(400)
                         }
     const data = req.body;
-    req.getConnection((error,conn)=>{
+    pool.getConnection((error,conn)=>{
         if(error){
             res.send({
                 success: false,
@@ -101,7 +103,7 @@ router.post('/addProduct',[authMiddleWare],(req,res)=>{
 })
 
 router.get('/customerCart/:customerId',(req,res)=>{
-    req.getConnection((err,conn)=>{
+    pool.getConnection((err,conn)=>{
         if(err){
             res.send({
                 success: false,
@@ -164,7 +166,7 @@ router.put('/updateQuantity',[authMiddleWare],(req,res)=>{
            message: "Minimum quantity is 1"
        }).status(403)
    } 
-  req.getConnection((err,conn)=>{
+  pool.getConnection((err,conn)=>{
       if(err){
           res.send({
               success: false,
@@ -290,7 +292,7 @@ router.put('/updateQuantity',[authMiddleWare],(req,res)=>{
 
 router.delete('/removeFormCart/:customer/:product',(req,res)=>{
    
-   req.getConnection((err,conn)=>{
+   pool.getConnection((err,conn)=>{
        if(err){
            res.send({
                success: false,
